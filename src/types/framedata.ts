@@ -1,7 +1,7 @@
 export type TekkenFramedataResponse = {
   name: string;
   input: string;
-  hit_level: string;
+  hitLevel: string;
   damage: string;
   startup: string;
   block: string;
@@ -15,7 +15,7 @@ export type TekkenFramedataResponse = {
 export type TekkenAttackData = {
   name: string;
   input: string;
-  hit_level: string;
+  hitLevel: string;
   damage: string;
   startup: string;
   block: string;

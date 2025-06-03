@@ -36,7 +36,7 @@ export class FramedataService {
 
     const characterCodeData = await characterCodeResponse.json();
 
-    if (characterCodeData.statusCode == 404) {
+    if (characterCodeData.statusCode == 400) {
       const errorEmbed = new EmbedBuilder()
         .setTitle("ERROR")
         .setDescription(
@@ -143,7 +143,7 @@ export class FramedataService {
     const {
       name,
       input,
-      hit_level,
+      hitLevel,
       damage,
       startup,
       block,
@@ -161,7 +161,7 @@ export class FramedataService {
       {
         input,
         name,
-        hit_level,
+        hitLevel,
         damage,
         startup,
         block,
@@ -221,7 +221,7 @@ export class FramedataService {
     const {
       name,
       input,
-      hit_level,
+      hitLevel,
       damage,
       startup,
       block,
@@ -239,7 +239,7 @@ export class FramedataService {
       .setFields(
         {
           name: "Hit Level",
-          value: this.validateEmbedFieldValue(hit_level),
+          value: this.validateEmbedFieldValue(hitLevel),
           inline: true,
         },
         {

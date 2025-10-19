@@ -13,7 +13,7 @@ This is a Discord bot which provides frame data for a given move of a specified 
 
 Syntax: `/fd8 {character_name} {attack_input_notation}`
 
-Example: `/fd8 reina df2`
+Example: `/fd8 bryan df2`
 
 Replies with a Discord embed containing data for the given move (Tekken 8).
 

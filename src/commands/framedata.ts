@@ -8,8 +8,8 @@ import {
   SlashCommandStringOption,
 } from "discord.js";
 import { Discord, Slash, SlashOption } from "discordx";
-import { FramedataService } from "../service/framedataService";
 import { MoveNotFoundError } from "../exceptions/similarMoves";
+import { FramedataService } from "../service/framedataService";
 
 const fd6Command = new SlashCommandBuilder()
   .setName("fd6")
@@ -59,7 +59,7 @@ export class Framedata {
       interaction,
       character,
       input,
-      "tekken6"
+      "tekken 6"
     );
   }
 
@@ -75,7 +75,7 @@ export class Framedata {
       interaction,
       character,
       input,
-      "tekkentag2"
+      "tekken tag tournament 2"
     );
   }
 
@@ -91,7 +91,7 @@ export class Framedata {
       interaction,
       character,
       input,
-      "tekken7"
+      "tekken 7"
     );
   }
 
@@ -107,7 +107,7 @@ export class Framedata {
       interaction,
       character,
       input,
-      "tekken8"
+      "tekken 8"
     );
   }
 

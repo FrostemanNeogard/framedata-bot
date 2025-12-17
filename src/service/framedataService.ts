@@ -1,10 +1,10 @@
 import { AttachmentBuilder, EmbedBuilder } from "discord.js";
-import { COLORS, EMBED_FIELDS } from "../util/config";
-import { DiscordEmbedResponse } from "../types/responses";
 import { existsSync } from "fs";
 import * as path from "path";
 import { MoveNotFoundError } from "../exceptions/similarMoves";
 import { TekkenAttackData } from "../types/framedata";
+import { DiscordEmbedResponse } from "../types/responses";
+import { COLORS, EMBED_FIELDS } from "../util/config";
 import { generateInputString } from "../util/helper";
 
 export class FramedataService {
@@ -16,7 +16,7 @@ export class FramedataService {
     inputs: string,
     gameCode: string
   ): Promise<DiscordEmbedResponse> {
-    const characterCodeResponse = await this.getCharacterCodeResponse(
+    const characterCodeResponse = await this.getCharacterId(
       gameCode,
       character
     );
@@ -36,7 +36,7 @@ export class FramedataService {
 
     const characterCodeData = await characterCodeResponse.json();
 
-    if (characterCodeData.statusCode == 400) {
+    if (characterCodeData.status == 404) {
       const errorEmbed = new EmbedBuilder()
         .setTitle("ERROR")
         .setDescription(
@@ -46,14 +46,14 @@ export class FramedataService {
       return { embeds: [errorEmbed] };
     }
 
-    const characterCode = characterCodeData.characterCode;
+    const characterId = characterCodeData.data.character.id;
 
     const validInputCategory = this.checkForAttackCategory(inputs);
     console.log("Input category:", validInputCategory);
     if (validInputCategory != null) {
       const categoryAttacks = await this.getAttacksByCategory(
         gameCode,
-        characterCode,
+        characterId,
         validInputCategory
       );
 
@@ -72,7 +72,7 @@ export class FramedataService {
 
       const allAttacksOfCategoryEmbed = new EmbedBuilder()
         .setTitle(
-          `${characterCode.toUpperCase()} ${validInputCategory.toUpperCase()} MOVES`
+          `${characterId.toUpperCase()} ${validInputCategory.toUpperCase()} MOVES`
         )
         .setDescription(
           categoryAttacks
@@ -83,11 +83,7 @@ export class FramedataService {
       return { embeds: [allAttacksOfCategoryEmbed] };
     }
 
-    const response = await this.getFramedataResponse(
-      characterCode,
-      gameCode,
-      inputs
-    );
+    const response = await this.getFramedataResponse(characterId, inputs);
 
     if (response == null) {
       const errorEmbed = new EmbedBuilder()
@@ -107,9 +103,9 @@ export class FramedataService {
     if (response.status == 400) {
       const errorEmbed = new EmbedBuilder()
         .setTitle("ERROR")
-        .setDescription(data.message)
+        .setDescription(data.error)
         .setColor(COLORS.danger);
-      console.log(`An API error ocurred: ${data.message}`);
+      console.log(`An API error ocurred: ${data.error}`);
       return {
         embeds: [errorEmbed],
       };
@@ -117,10 +113,10 @@ export class FramedataService {
 
     if (response.status == 404) {
       const similarMoveNames =
-        data.similar_moves
+        data.data.framedata
           .map(
             (move: { [key: string]: any }, index: number) =>
-              `**${index + 1}:** ${move.input}`
+              `**${index + 1}:** ${move.data.attributes.input}`
           )
           .join("\n") ?? "None found";
 
@@ -134,9 +130,9 @@ export class FramedataService {
       console.log(`Sending "Similar Moves" embed for ${character}'s ${inputs}`);
       throw new MoveNotFoundError(
         gameCode,
-        characterCode,
+        characterId,
         warningEmbed,
-        data.similar_moves
+        data.data.framedata.map((fd) => fd.data.attributes)
       );
     }
 
@@ -150,10 +146,11 @@ export class FramedataService {
       hit,
       counter,
       notes,
-    } = data[0];
+    } = data.data.framedata[0].data.attributes;
 
+    // TODO: Fix this (migrate to backend?)
     const characterThumbnail = await this.getCharacterThumbnail(
-      characterCode,
+      characterId,
       gameCode
     );
 
@@ -169,7 +166,7 @@ export class FramedataService {
         counter,
         notes,
       },
-      characterCode.toUpperCase(),
+      data.data.gameCharacter.name,
       characterThumbnail
     );
 
@@ -185,6 +182,7 @@ export class FramedataService {
     characterCode: string,
     validInputCategory: string
   ): Promise<string[] | null> {
+    // TODO: Fix this once implemented in the backend
     const response = await fetch(
       `${this.BASE_API_URL}framedata/${gameCode}/${characterCode}/categories/${validInputCategory}`
     );
@@ -232,7 +230,7 @@ export class FramedataService {
     const notes = unfilteredNotes.filter((i) => i != "");
     const inputString = generateInputString(input, name);
     const responseEmbed = new EmbedBuilder()
-      .setTitle(characterName.toUpperCase())
+      .setTitle(characterName)
       .setDescription(inputString)
       .setColor(COLORS.success)
       .setFooter({ text: EMBED_FIELDS.footer })
@@ -299,12 +297,12 @@ export class FramedataService {
     return null;
   }
 
-  private async getCharacterCodeResponse(gameCode: string, character: string) {
+  private async getCharacterId(gameCode: string, character: string) {
     try {
       return await fetch(
         `${
           this.BASE_API_URL
-        }charactercodes/${gameCode}/${character.toLowerCase()}`
+        }aliases/game/${gameCode}/alias/${character.toLowerCase()}`
       );
     } catch (err) {
       console.error(`An error ocurred when fetching character code: ${err}`);
@@ -312,15 +310,11 @@ export class FramedataService {
     }
   }
 
-  private async getFramedataResponse(
-    characterCode: any,
-    gameCode: string,
-    inputs: string
-  ) {
+  private async getFramedataResponse(characterId: string, inputs: string) {
     const encodedInputs = formatInputsForHtml(inputs);
     try {
       return await fetch(
-        `${this.BASE_API_URL}framedata/${gameCode}/${characterCode}/moves/${encodedInputs}`
+        `${this.BASE_API_URL}framedata/character/${characterId}/identifier/${encodedInputs}`
       );
     } catch (err) {
       console.error(`An error ocurred when fetching framedata: ${err}`);

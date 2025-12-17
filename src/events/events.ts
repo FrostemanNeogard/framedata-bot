@@ -1,13 +1,12 @@
+import { Events } from "discord.js";
 import { ArgsOf, Client, Discord, On, Once } from "discordx";
 import "dotenv/config";
+import { MoveNotFoundError } from "../exceptions/similarMoves";
 import { FramedataService } from "../service/framedataService";
-import { AttachmentBuilder, Events } from "discord.js";
 import {
   handleSimilarMovesNonInteraction,
   logCommandUsage,
 } from "../util/helper";
-import { MoveNotFoundError } from "../exceptions/similarMoves";
-import * as path from "path";
 const { CLIENT_ID } = process.env;
 
 @Discord()
@@ -85,7 +84,7 @@ export class EventListener {
       const responseEmbed = await this.framedataService.getFramedataEmbed(
         character,
         inputs,
-        "tekken8"
+        "tekken 8"
       );
 
       await message.reply(responseEmbed);

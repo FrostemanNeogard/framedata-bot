@@ -47,6 +47,7 @@ export class FramedataService {
     }
 
     const characterId = characterCodeData.data.character.id;
+    const characterName = characterCodeData.data.character.name;
 
     const validInputCategory = this.checkForAttackCategory(inputs);
     console.log("Input category:", validInputCategory);
@@ -150,7 +151,7 @@ export class FramedataService {
 
     // TODO: Fix this (migrate to backend?)
     const characterThumbnail = await this.getCharacterThumbnail(
-      characterId,
+      characterName,
       gameCode
     );
 
@@ -281,11 +282,17 @@ export class FramedataService {
     return responseEmbed;
   }
 
-  public async getCharacterThumbnail(characterCode: string, gameCode: string) {
+  public async getCharacterThumbnail(characterName: string, gameName: string) {
+    const characterCode = characterName.split(" ")[0].toLowerCase();
+    const gameCode = gameName.replaceAll(" ", "");
+
     const imageFilePath = path.join(
       __dirname,
       `../images/${gameCode}/${characterCode}.png`
     );
+
+    console.log("imageFilePath", imageFilePath);
+
     const fileExists = existsSync(imageFilePath);
     if (fileExists) {
       console.log(`Found image for character ${characterCode}.`);
